@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Práctica 3.2: Seguridad web</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  
+  
+  
+  
+  
+  
+  
+  
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Práctica 3.2: Seguridad web</h1>
+</header>
+<h1 id="objetivo"><span class="header-section-number">1</span> Objetivo</h1>
+<p>El objetivo de esta práctica es familiarizarse con las principales vulnerabilidades web analizadas en clase, viendo los efectos de su explotación de forma práctica. Para ello emplearemos un sitio web vulnerable creado específicamente para el estudio de estas vulnerabilidades así como de ataques de inyección específicos.</p>
+<h1 id="descripción-del-software-necesario"><span class="header-section-number">2</span> Descripción del software necesario</h1>
+<p>La práctica se realizará usando la máquina virtual de Debian 10.x, que ya se presentó en el guión de la práctica anterior. Emplearemos esta máquina virtual por el hecho de que tiene un software más actualizado, y con ello se simplifica la instalación de las herramientas extra necesarias para su realización.</p>
+<p>En particular, se hará uso de las tres siguientes herramientas de seguridad:</p>
+<ul>
+<li>OWasp Mutillidae (v2.8.24)</li>
+<li>OWASP ZAP (v2.7)</li>
+<li>SQLMap</li>
+</ul>
+<p><a href="https://github.com/webpwnized/mutillidae"><strong>OWASP Mutillidae</strong></a> es una herramienta gratuita y de código abierto, creada específicamente para el análisis de las vulnerabilidades web más comunes. Se trata de una aplicación web vulnerable desarrollada con PHP y JavaScript, que puede desplegarse sobre sistemas GNU/Linux o Windows que tengan instalado el entorno de PHP, y los servidores Apache y MySql. Como parte de la práctica, el estudiante deberá desplegar Mutillidae sobre la máquina virtual de Debian, instalando previamente los componentes necesarios del entorno. Algunas características relevantes de Mutillidae son las siguientes:</p>
+<ul>
+<li>Consta de más de 40 vulnerabilidades web y ofrece distintos retos de explotación para entusiastas en la seguridad web, proporcionando pistas para la explotación de las vulnerabilidades existentes. Los problemas de seguridad presentes en Mutillidae cubren completamente los listados de vulnerabildades web más comunes correspondientes a los rankings <a href="https://owasp.org/www-project-top-ten/"><em>OWASP Top Ten</em></a> de los años 2007, 2010. 2013 y 2017.</li>
+<li>Para simplificar el estudio y explotación de las vulnerabilidades, OWasp Mutillidae permite resetear el estado de la base de datos desde la propia interfaz web, y así poder fácilmente revertir la configuración por defecto para la realización de ataques desde cero.</li>
+<li>Permite cambiar el nivel de seguridad (<em>Toggle Security</em>) del 0 (completamente inseguro) al 5 (seguro) y ofrece tres niveles de ayuda (Toogle Hints), del 0 (sin ayuda) al 2 (modo tutorial).</li>
+</ul>
+<!--
+
+https://securityorb.com/web-security/owasp-mutillidae-ii/
+
+-->
+<p><a href="https://www.zaproxy.org"><strong>ZAP (Zed Attack Proxy)</strong></a> es una herramienta de <em>pentesting</em> web de código abierto que se mantiene en el contexto del proyecto OWASP (Open Web Application Security Project). Fundamentalmente, ZAP opera como un proxy que se sitúa entre el navegador utilizado por el pentester y la aplicación web a auditar. Al recibir el tráfico tanto de cliente como de servidor, ZAP permite interceptar e inspeccionar todos los mensajes de la comunicación, ofreciendo al usuario la posibilidad de alterar el contenido de estos mensajes para perpetrar un ataque o evaluar la robustez de la aplicación web. Esta herramienta cuenta con un modo automático y otro manual de escaneo de vulnerabilidades. De ZAP cabe también destacar especialmente su amplio ecosistema de plugins (<em>addons</em>), y la capacidad de automatizar patrones de escaneo y ataque mediante numerosos lenguajes de scripting.</p>
+<!--
+
+https://www.zaproxy.org/getting-started/images/browser-no-proxy.png
+
+https://www.zaproxy.org/docs/desktop/start/features/addons/
+
+https://www.zaproxy.org/docs/desktop/addons/script-console/
+
+-->
+<p>La herramienta <em>open-source</em> <a href="https://github.com/sqlmapproject/sqlmap"><strong>SQLMap</strong></a> permite automatizar el proceso de detección y explotación de vulnerabilidades de <em>SQL injection</em>, y nos brinda la posibilidad, en ocasiones, de tomar el control de servidores de bases de datos. Si bien mediante la realización de ataques manuales de inyección SQL en una aplicación web es posible obtener cierta información relevante o burlar el proceso de <em>login</em>, con <code>sqlmap</code> es posible incluso listar las tablas de la base de datos y su contenido, acceder al sistema de archivos subyacente o incluso ejecutar comandos del sistema operativo en el servidor, todo ello mediante el uso de cadenas de ataque avanzadas especialmente construidas para gestores de bases de datos específicos.</p>
+<h1 id="instalación-del-software-sobre-máquina-virtual-de-debian"><span class="header-section-number">3</span> Instalación del software sobre máquina virtual de Debian</h1>
+<p>Tras arrancar con la máquina virtual de Debian, se debe acceder al sistema con el usuario <code>kernel</code> y contraseña <code>kernel</code>. A continuación abriremos una ventana de terminal, en la cual iniciaremos una sesion como root tecleando el siguiente comando:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" title="1"><span class="ex">kernel@debian</span>:~# sudo -i</a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="ex">Contrase</span>ña: <span class="op">&lt;</span>introducir <span class="st">&quot;kernel&quot;</span><span class="op">&gt;</span></a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="ex">root@debian</span>:~#</a></code></pre></div>
+<p><span class="underline"><span style="text-decoration: underline"><strong>Nota importante:</strong></span></span> En esta práctica la instalación de LAMPP, Mutillidae, <code>sqlmap</code> y ZAP será lo único que ha de realizarse como <em>root</em>.</p>
+<h2 id="instalación-de-lampp"><span class="header-section-number">3.1</span> Instalación de LAMPP</h2>
+<p>Procedemos en primer lugar a instalar LAMPP, es decir Apache, MySql y PHP sobre GNU/Linux, como sigue:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" title="1"><span class="co">## Actualizamos listado de paquetes</span></a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="ex">root@debian</span>:~# apt update</a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="co">## Instalación de Apache y MySQL server</span></a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="ex">root@debian</span>:~# apt install apache2 mysql-server (cambiado por mariadb-server)</a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="co">## Instalación de PHP</span></a>
+<a class="sourceLine" id="cb2-6" title="6"><span class="ex">root@debian</span>:~# apt install php7.3 php-pear php7.0-mysql libapache2-mod-php7.0 php7.0-mbstring php7.0-curl </a></code></pre></div>
+<p>A continuación reiniciaremos el servidor Apache:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" title="1"><span class="ex">root@debian</span>:~# service apache2 restart</a></code></pre></div>
+<p>Una vez hecho esto, el servidor Apache debería estar funcionando correctamente. Para comprobar su funcionamiento, se ha de abrir el navegador web Firefox dentro de la máquina virtual, y con él visitar la dirección <code>http://localhost</code>. Debería mostrarse la página por defecto de Apache 2:</p>
+<p><img src="img/web-apache.png" data-align="center" style="width:100.0%" /> </p>
+<p>Por simplicidad, en esta práctica accederemos al sitio web vulnerable desde dentro de la propia máquina virtual, usando el navegador web o la herramienta ZAP. No obstante es posible acceder a esta web desde el sistema anfitrion, o desde otra máquina virtual de la misma red usando la dirección IP del sistema, que es la que el comando <code>ip a</code> muestra como asociada a la interfaz de red <code>ens33</code> (192.168.127.130, en el ejemplo mostrado a continuación):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" title="1"><span class="ex">root@debian</span>:~# ip a</a>
+<a class="sourceLine" id="cb4-2" title="2"><span class="ex">1</span>: lo: <span class="op">&lt;</span>LOOPBACK,UP,LOWER_UP<span class="op">&gt;</span> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1</a>
+<a class="sourceLine" id="cb4-3" title="3">    <span class="ex">link/loopback</span> 00:00:00:00:00:00 brd 00:00:00:00:00:00</a>
+<a class="sourceLine" id="cb4-4" title="4">    <span class="ex">inet</span> 127.0.0.1/8 scope host lo</a>
+<a class="sourceLine" id="cb4-5" title="5">       <span class="ex">valid_lft</span> forever preferred_lft forever</a>
+<a class="sourceLine" id="cb4-6" title="6">    <span class="ex">inet6</span> ::1/128 scope host </a>
+<a class="sourceLine" id="cb4-7" title="7">       <span class="ex">valid_lft</span> forever preferred_lft forever</a>
+<a class="sourceLine" id="cb4-8" title="8"><span class="ex">2</span>: ens33: <span class="op">&lt;</span>BROADCAST,MULTICAST,UP,LOWER_UP<span class="op">&gt;</span> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000</a>
+<a class="sourceLine" id="cb4-9" title="9">    <span class="ex">link/ether</span> 00:0c:29:d6:82:57 brd ff:ff:ff:ff:ff:ff</a>
+<a class="sourceLine" id="cb4-10" title="10">    <span class="ex">inet</span> 192.168.127.132/24 brd 192.168.127.255 scope global dynamic ens33</a>
+<a class="sourceLine" id="cb4-11" title="11">       <span class="ex">valid_lft</span> 1707sec preferred_lft 1707sec</a>
+<a class="sourceLine" id="cb4-12" title="12">    <span class="ex">inet6</span> fe80::20c:29ff:fed6:8257/64 scope link </a>
+<a class="sourceLine" id="cb4-13" title="13">       <span class="ex">valid_lft</span> forever preferred_lft forever</a></code></pre></div>
+<h2 id="despliegue-de-mutillidae-sobre-lampp"><span class="header-section-number">3.2</span> Despliegue de Mutillidae sobre LAMPP</h2>
+<p>Para la instalación de esta aplicación web vulnerable, obtendremos en primer lugar su código fuente de github —el correspondiente a la versión 2.8.24—, como sigue:</p>
+<pre><code>root@debian:~# wget https://github.com/webpwnized/mutillidae/archive/2.8.24.tar.gz -O mutillidae.tgz</code></pre>
+<p>A continuación, extraeremos el fichero comprimido, y transferiremos el directorio obtenido tras la extracción al sitio por defecto de páginas web en Apache:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" title="1"><span class="ex">root@debian</span>:~# tar xzvf mutillidae.tgz</a>
+<a class="sourceLine" id="cb6-2" title="2"><span class="ex">...</span></a>
+<a class="sourceLine" id="cb6-3" title="3"><span class="ex">root@debian</span>:~# mv mutillidae-2.8.24 /var/www/html/mutillidae</a></code></pre></div>
+<p>Acto seguido procederemos a establecer la configuración de la base de datos que usará Mutillidae. Para ello, es preciso descargar un fichero de configuración por defecto y almacenarlo en el lugar establecido por la implementación del sitio web vulnerable:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" title="1"><span class="ex">root@debian</span>:~# wget https://raw.githubusercontent.com/webpwnized/mutillidae/master/includes/database-config.inc \</a>
+<a class="sourceLine" id="cb7-2" title="2">              -O /var/www/html/mutillidae/database-config.inc</a></code></pre></div>
+<p>Conviene consultar la información almacenada en el fichero descargado, para conocer la información de configuración y conexión a la base de datos que se establecerá más adelante:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb8-1" title="1"><span class="ex">root@debian</span>:~# cat /var/www/html/mutillidae/database-config.inc </a>
+<a class="sourceLine" id="cb8-2" title="2"><span class="op">&lt;</span><span class="ex">?php</span></a>
+<a class="sourceLine" id="cb8-3" title="3"><span class="ex">define</span>(<span class="st">&#39;DB_HOST&#39;</span>, <span class="st">&#39;127.0.0.1&#39;</span>);</a>
+<a class="sourceLine" id="cb8-4" title="4"><span class="ex">define</span>(<span class="st">&#39;DB_USERNAME&#39;</span>, <span class="st">&#39;root&#39;</span>);</a>
+<a class="sourceLine" id="cb8-5" title="5"><span class="ex">define</span>(<span class="st">&#39;DB_PASSWORD&#39;</span>, <span class="st">&#39;mutillidae&#39;</span>);</a>
+<a class="sourceLine" id="cb8-6" title="6"><span class="ex">define</span>(<span class="st">&#39;DB_NAME&#39;</span>, <span class="st">&#39;mutillidae&#39;</span>);</a>
+<a class="sourceLine" id="cb8-7" title="7"><span class="ex">?</span><span class="op">&gt;</span></a></code></pre></div>
+<p>Finalmente, en un prompt de Mysql (más información a continuación) teclearemos los siguientes comandos (uno por línea), para que Mutillidae pueda conectarse a la base de datos MySqL:</p>
+<pre class="mysql"><code>use mysql;
+update user set authentication_string=PASSWORD(&#39;mutillidae&#39;) where user=&#39;root&#39;; 
+update user set plugin=&#39;mysql_native_password&#39; where user=&#39;root&#39;;
+flush privileges;
+quit;</code></pre>
+<p>Desde el shell podemos lograr esto del siguiente modo:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb10-1" title="1"><span class="ex">root@debian</span>:~# mysql -u root</a>
+<a class="sourceLine" id="cb10-2" title="2"><span class="ex">Enter</span> password: </a>
+<a class="sourceLine" id="cb10-3" title="3"><span class="ex">Welcome</span> to the MariaDB monitor.  Commands end with <span class="kw">;</span> <span class="ex">or</span> \g.</a>
+<a class="sourceLine" id="cb10-4" title="4"><span class="ex">Your</span> MariaDB connection id is 3</a>
+<a class="sourceLine" id="cb10-5" title="5"><span class="ex">Server</span> version: 10.1.48-MariaDB-0+deb9u1 Debian 9.13</a>
+<a class="sourceLine" id="cb10-6" title="6"></a>
+<a class="sourceLine" id="cb10-7" title="7"><span class="ex">Copyright</span> (c) <span class="ex">2000</span>, 2018, Oracle, MariaDB Corporation Ab and others.</a>
+<a class="sourceLine" id="cb10-8" title="8"></a>
+<a class="sourceLine" id="cb10-9" title="9"><span class="ex">Type</span> <span class="st">&#39;help;&#39;</span> or <span class="st">&#39;\h&#39;</span> for help. Type <span class="st">&#39;\c&#39;</span> to clear the current input statement.</a>
+<a class="sourceLine" id="cb10-10" title="10"></a>
+<a class="sourceLine" id="cb10-11" title="11"><span class="ex">MariaDB</span> [(none)]<span class="op">&gt;</span> <span class="ex">use</span> mysql<span class="kw">;</span></a>
+<a class="sourceLine" id="cb10-12" title="12"><span class="ex">Reading</span> table information for completion of table and column names</a>
+<a class="sourceLine" id="cb10-13" title="13"><span class="ex">You</span> can turn off this feature to get a quicker startup with -A</a>
+<a class="sourceLine" id="cb10-14" title="14"></a>
+<a class="sourceLine" id="cb10-15" title="15"><span class="ex">Database</span> changed</a>
+<a class="sourceLine" id="cb10-16" title="16"><span class="ex">MariaDB</span> [mysql]<span class="op">&gt;</span> update user set authentication_string=PASSWORD(<span class="st">&#39;mutillidae&#39;</span>) <span class="ex">where</span> user=<span class="st">&#39;root&#39;</span><span class="kw">;</span> </a>
+<a class="sourceLine" id="cb10-17" title="17"><span class="ex">Query</span> OK, 0 rows affected (0.00 sec)</a>
+<a class="sourceLine" id="cb10-18" title="18"><span class="ex">Rows</span> matched: 1  Changed: 0  Warnings: 0</a>
+<a class="sourceLine" id="cb10-19" title="19"></a>
+<a class="sourceLine" id="cb10-20" title="20"><span class="ex">MariaDB</span> [mysql]<span class="op">&gt;</span> update user set plugin=<span class="st">&#39;mysql_native_password&#39;</span> where user=<span class="st">&#39;root&#39;</span><span class="kw">;</span></a>
+<a class="sourceLine" id="cb10-21" title="21"><span class="ex">Query</span> OK, 0 rows affected (0.00 sec)</a>
+<a class="sourceLine" id="cb10-22" title="22"><span class="ex">Rows</span> matched: 1  Changed: 0  Warnings: 0</a>
+<a class="sourceLine" id="cb10-23" title="23"></a>
+<a class="sourceLine" id="cb10-24" title="24"><span class="ex">MariaDB</span> [mysql]<span class="op">&gt;</span> flush privileges<span class="kw">;</span></a>
+<a class="sourceLine" id="cb10-25" title="25"><span class="ex">Query</span> OK, 0 rows affected (0.00 sec)</a>
+<a class="sourceLine" id="cb10-26" title="26"></a>
+<a class="sourceLine" id="cb10-27" title="27"><span class="ex">MariaDB</span> [mysql]<span class="op">&gt;</span> quit<span class="kw">;</span></a>
+<a class="sourceLine" id="cb10-28" title="28"><span class="ex">Bye</span></a>
+<a class="sourceLine" id="cb10-29" title="29"><span class="ex">root@debian</span>:~# </a></code></pre></div>
+<p>Finalmente, configuraremos la base de datos de Mutillidae realizando los siguientes pasos:</p>
+<ol type="1">
+<li><p>Visitar la siguiente página usando el navegador web Firefox: <code>http://localhost/mutillidae</code></p>
+<p><img src="img/mutillidae-database-missing.png" data-align="center" style="width:100.0%" /> </p></li>
+<li><p>En la página mostrada hacer clic en el enlace con el texto “setup/reset the DB” (Punto 3). Al hacer esto se mostrará un cuadro de diálogo indicando que no se han producido errores de PHP ni de MySql. Haremos clic en Aceptar:</p>
+<p>​ <img src="img/mutillidae-database-created.png" data-align="center" style="width:100.0%" /> </p></li>
+<li><p>Finalmente se mostrará la página principal de Mutillidae:</p>
+<p>​ <img src="img/mutillidae-main.png" data-align="center" style="width:100.0%" /> </p></li>
+</ol>
+<h2 id="instalación-de-sqlmap"><span class="header-section-number">3.3</span> Instalación de <code>sqlmap</code></h2>
+<p>Al igual que los componentes de LAMPP, esta herramienta también está disponible en los repositorios de paquetes de Debian. Por lo tanto, para instalarla basta hacer lo siguiente:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb11-1" title="1"><span class="ex">root@debian</span>:~# apt install sqlmap</a></code></pre></div>
+<h2 id="instalación-y-configuración-inicial-de-owasp-zap"><span class="header-section-number">3.4</span> Instalación y configuración inicial de OWASP ZAP</h2>
+<p>Para proceder a la instalación de OWASP ZAP sobre la máquina virtual de Debian basta con descargar el paquete Debian asociado a la versión 2.7 del repositorio oficial alojado en GitHub, y a continuación instalar el paquete empleando la utilidad <code>dpkg</code></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb12-1" title="1"><span class="ex">root@debian</span>:~# wget https://github.com/zaproxy/zaproxy/releases/download/2.7.0/zaproxy-2.7.0.deb</a>
+<a class="sourceLine" id="cb12-2" title="2"><span class="ex">...</span></a>
+<a class="sourceLine" id="cb12-3" title="3"><span class="ex">Resolviendo</span> github.com (github.com)<span class="ex">...</span> 140.82.121.4</a>
+<a class="sourceLine" id="cb12-4" title="4"><span class="ex">Conectando</span> con github.com (github.com)[<span class="ex">140.82.121.4</span>]:443... conectado.</a>
+<a class="sourceLine" id="cb12-5" title="5"><span class="ex">Petici</span>ón HTTP enviada, esperando respuesta... 302 Found</a>
+<a class="sourceLine" id="cb12-6" title="6"><span class="ex">...</span></a>
+<a class="sourceLine" id="cb12-7" title="7"><span class="ex">Petici</span>ón HTTP enviada, esperando respuesta... 200 OK</a>
+<a class="sourceLine" id="cb12-8" title="8"><span class="ex">Longitud</span>: 130915944 (125M) [<span class="ex">application</span>/<span class="ex">octet-stream</span>]</a>
+<a class="sourceLine" id="cb12-9" title="9"><span class="ex">Grabando</span> a: “zaproxy-2.7.0.deb”</a>
+<a class="sourceLine" id="cb12-10" title="10"></a>
+<a class="sourceLine" id="cb12-11" title="11"><span class="ex">zaproxy-2.7.0.deb</span>                    100%[====================================================================<span class="op">&gt;</span>] 124,85M  14,4MB/s    en 7,9s    </a>
+<a class="sourceLine" id="cb12-12" title="12"></a>
+<a class="sourceLine" id="cb12-13" title="13"><span class="ex">2022-01-15</span> 20:23:43 (15,7 MB/s) <span class="ex">-</span> “zaproxy-2.7.0.deb” guardado [130915944/130915944]</a>
+<a class="sourceLine" id="cb12-14" title="14"></a>
+<a class="sourceLine" id="cb12-15" title="15"><span class="ex">root@debian</span>:~# dpkg -i zaproxy-2.7.0.deb </a>
+<a class="sourceLine" id="cb12-16" title="16"><span class="ex">Seleccionando</span> el paquete zaproxy previamente no seleccionado.</a>
+<a class="sourceLine" id="cb12-17" title="17"><span class="kw">(</span><span class="ex">Leyendo</span> la base de datos ... 358673 ficheros o directorios instalados actualmente.<span class="kw">)</span></a>
+<a class="sourceLine" id="cb12-18" title="18"><span class="ex">Preparando</span> para desempaquetar zaproxy-2.7.0.deb ...</a>
+<a class="sourceLine" id="cb12-19" title="19"><span class="ex">Desempaquetando</span> zaproxy (2.7.0) <span class="ex">...</span></a>
+<a class="sourceLine" id="cb12-20" title="20"><span class="ex">Configurando</span> zaproxy (2.7.0) <span class="ex">...</span></a>
+<a class="sourceLine" id="cb12-21" title="21"><span class="ex">Procesando</span> disparadores para gnome-menus (3.31.4-3) <span class="ex">...</span></a>
+<a class="sourceLine" id="cb12-22" title="22"><span class="ex">Procesando</span> disparadores para desktop-file-utils (0.23-4) <span class="ex">...</span></a>
+<a class="sourceLine" id="cb12-23" title="23"><span class="ex">Procesando</span> disparadores para mime-support (3.62) <span class="ex">...</span></a>
+<a class="sourceLine" id="cb12-24" title="24"><span class="ex">kernel@debian</span>:~$ </a></code></pre></div>
+<p>Instalaremos también las siguientes dependencias, para eliminar algunas advertencias al lanzar ZAP:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb13-1" title="1"><span class="ex">root@debian</span>:~# apt install libcanberra-gtk-module libcanberra-gtk3-module</a></code></pre></div>
+<p>Finalmente, para garantizar que pueda arrancarse satisfactoriamente basta con eliminar los ficheros de configuración almacenados en el directorio del usuario <code>kernel</code>. Para ello debemos cerrar la sesión de root en el shell ya abierto, y proceder a eliminar los ficheros como sigue:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb14-1" title="1"><span class="ex">root@debian</span>:~# exit</a>
+<a class="sourceLine" id="cb14-2" title="2"><span class="ex">kernel@debian</span>:~$ cd</a>
+<a class="sourceLine" id="cb14-3" title="3"><span class="ex">kernel@debian</span>:~$ rm -rf .ZAP/</a></code></pre></div>
+<!--
+
+JAVA
+
+```bash
+kernel@debian:~$ sudo update-alternatives --config java
+Existen 2 opciones para la alternativa java (que provee /usr/bin/java).
+
+  Selección   Ruta                                            Prioridad  Estado
+------------------------------------------------------------
+* 0            /usr/lib/jvm/java-11-openjdk-amd64/bin/java      1111      modo automático
+  1            /usr/lib/jvm/java-11-openjdk-amd64/bin/java      1111      modo manual
+  2            /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java   1081      modo manual
+
+Pulse <Intro> para mantener el valor por omisión [*] o pulse un número de selección: 2
+update-alternatives: utilizando /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java para proveer /usr/bin/java (java) en modo manual
+
+```
+
+
+
+La herramienta OWASP ZAP ya está instalada en la máquina virtual de Debian. 
+
+-->
+<h1 id="desarrollo-de-la-práctica"><span class="header-section-number">4</span> Desarrollo de la práctica</h1>
+<p>La práctica consta de tres partes. En la primera parte se procederá a la explotación manual de distintas vulnerabilidades interactuando directamente con el sitio web desde el navegador. En la segunda parte se hará uso de la herramienta <code>sqlmap</code> para acceder a información confidencial almacenada en la base de datos explotando vulnerabilidades de inyección SQL presentes en Mutillidae. Finalmente, se realizará un escaneo automatizado de vulnerabilidades (auditoría de seguridad) con OWASP ZAP.</p>
+<h2 id="explotación-manual-de-vulnerabilidades-en-mutillidae"><span class="header-section-number">4.1</span> Explotación manual de vulnerabilidades en Mutillidae</h2>
+<p>La página principal de Mutillidae (<code>http://localhost/mutillidae</code>) posee un menú lateral que permite acceder a las páginas vulnerables, que están organizadas por tipo y en base a los rankings OWASP top 10 de 2017, 2013, 2010 y 2007:</p>
+<p><img src="img/mutillidae-main.png" data-align="center" style="width:100.0%" /></p>
+<p>En esta sección de la práctica comenzaremos realizando ataques de inyección de distintos tipos, y a continuación procederemos a perpetrar diversos ataques de Cross-Site Scripting (XSS).</p>
+<h3 id="ataques-de-inyección"><span class="header-section-number">4.1.1</span> Ataques de inyección</h3>
+<h4 id="ejercicio-1" class="unnumbered">Ejercicio 1</h4>
+<p>El primer ataque que llevaremos a cabo será de <em>SQL Injection</em>. Para ello accederemos a la página <em>Login</em> accesible mediante el menú lateral de la siguiente forma:</p>
+<p><img src="img/sqli-login.png" /></p>
+<p>En el formulario web que se muestra al acceder a la citada página, introduce como valor del campo <em>Username</em> la siguiente cadena, que incluye un espacio después de los dos guiones: <code>' or 0=0 --</code></p>
+<p>A continuación introduce cualquier valor en el campo <em>Password</em> (incluso la cadena vacía) y haz clic en el botón <em>Login</em>, tras lo cual podrá hacerse <em>login</em> “correctamente” en el sitio web. Responde justificadamente a las siguientes preguntas:</p>
+<ol type="1">
+<li>¿Con qué usuario has conseguido acceder al sistema?</li>
+<li>Accede a la página de edición del perfil del usuario actual (<code>edit-account-profile.php</code>), haciendo clic en el icono del lápiz (esquina superior derecha). ¿Puedes obtener información sobre otras cuentas de usuario disponibles en el sitio web? ¿Cómo lo has conseguido? <strong>Pista:</strong> La URL de esa página puede alterarse de forma manual para obtener cierta información de cada usuario, considerando que cada uno tiene un ID numérico distinto.</li>
+<li>Indica qué información (campos) has podido obtener de los distintos usuarios.</li>
+<li>Haz <em>logout</em> en el sitio web seleccionando la entrada “Logout” en el menú superior de navegación. Busca en la sección 10 de esta <a href="https://www.netsparker.com/blog/web-security/sql-injection-cheat-sheet/#ByPassingLoginScreens">guía</a> (“SQL Injection Cheat Sheet: Bypassing Login Screens”) otras cadenas alternativas para saltarse el proceso de login mediante explotación de inyección SQL. Prueba con alguna de ellas para intentar hacer <em>login</em> con un usuario específico de los obtenidos en el punto anterior de este ejercicio. ¿Con qué otro usuario has conseguido autenticarte y qué cadena de inyección te ha permitido realizar la autenticación correspondiente?</li>
+</ol>
+<p><strong>Nota importante:</strong> Antes de proseguir con el siguiente ejercicio debemos asegurarnos de que no estamos autenticados.</p>
+<h4 id="ejercicio-2" class="unnumbered">Ejercicio 2</h4>
+<p>Realicemos ahora otro ataque de <em>SQL injection</em>, empleando la página <em>User Info</em>, a la que podemos acceder del siguiente modo:</p>
+<p><img src="img/sqli-user-info.png" /></p>
+<p>A continuación introduce la cadena utilizada anteriormente <code>' or 0=0 --</code> como valor del campo <em>Username</em>, no introduzcas nada en el campo <em>Password</em> y haz clic en el botón <em>Login</em>. Responde justificadamente a las siguientes preguntas:</p>
+<ol type="1">
+<li>¿Has conseguido en esta ocasión hacer login en el sitio web? En caso de que el resultado sea diferente al del ejercicio anterior, indica cuál crees que es el motivo.</li>
+<li>La utilización de la cadena de inyección hace que se muestre de nuevo el formulario de login y debajo de él se proporciona otra información. ¿Cuántas cuentas de usuario existen en el sistema? ¿Qué información puede obtenerse de cada usuario?</li>
+<li>Proporciona un listado o tabla con los “campos” obtenidos para los 10 primeros usuarios del sistema.</li>
+</ol>
+<h4 id="ejercicio-3" class="unnumbered">Ejercicio 3</h4>
+<p>Ahora realizaremos otro tipo de ataque de inyección que permite la ejecución de comandos remotamente en la máquina donde se ejecuta el servidor web. Para ello, accederemos a la página “DNS Lookup” mediante el menú lateral como se muestra a continuación:</p>
+<p><img src="img/command-injection.png" /></p>
+<p>En el campo de formulario etiquetado “Hostname/IP” introduce las dos siguientes cadenas, y analiza el resultado tras hacer clic en sendas ocasiones en el botón “Lookup DNS”</p>
+<ul>
+<li><code>; echo hello</code></li>
+<li><code>; echo hola &amp;&amp; whoami</code></li>
+</ul>
+<p>Responde justificadamente a las siguientes preguntas:</p>
+<ol type="1">
+<li><p>¿Cuál es la salida proporcionada para cada una de las cadenas? ¿Por qué crees que se genera esa salida?</p></li>
+<li><p>Utiliza cadenas de inyección similares para obtener la información solicitada a continuación (para cada punto, además de responder a la pregunta, se ha de proporcionar la cadena usada para obtener dicha información):</p>
+<ol type="a">
+<li><p>Usuario propietario del proceso que ejecuta el servidor Apache</p></li>
+<li><p>Usuario propietario del proceso que ejecuta el servidor mysql</p></li>
+<li><p>Listado de los usuarios locales presentes en el sistema GNU Linux, incluyendo su uid</p></li>
+</ol>
+<p>​ <strong>Pista:</strong> Si no consigues hacerlo a la primera, visita la página de ayuda sobre inyección de comandos del SO desde el navegador de la máquina virtual empleando la siguiente URL: <a href="http://localhost/mutillidae/hints-page-wrapper.php?level1HintIncludeFile=20" class="uri">http://localhost/mutillidae/hints-page-wrapper.php?level1HintIncludeFile=20</a></p></li>
+</ol>
+<h3 id="ataques-de-cross-site-scripting-xss"><span class="header-section-number">4.1.2</span> Ataques de Cross-Site Scripting (XSS)</h3>
+<p>En esta sección procederemos a analizar los efectos de los ataques XSS y las diferencias entre sus dos variantes: XSS reflejado y XSS almacenado.</p>
+<h4 id="ejercicio-4" class="unnumbered">Ejercicio 4</h4>
+<p>Comenzaremos realizando un ataque XSS reflejado, para lo cual accederemos a la página “Echo Message” accesible desde el menú de navegación de OWASP 2017 como se indica a continuación:</p>
+<p><img src="img/reflected-xss.png" /></p>
+<p>En el cuadro de texto etiquetado “Message” introduce las tres siguientes cadenas (tres pruebas independientes), y analiza el resultado tras hacer clic en el botón “Echo message”:</p>
+<ul>
+<li><code>Hola</code></li>
+<li><code>&lt;script&gt;alert(&quot;Hola&quot;)&lt;/script&gt;</code></li>
+<li><code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code></li>
+</ul>
+<p>Responde justificadamente a las siguientes preguntas:</p>
+<ol type="1">
+<li>¿Qué ocurre como resultado de usar cada una de las cadenas como valor del campo “Message”? ¿Por qué sucede eso?</li>
+<li>Las dos últimas cadenas de la lista permiten que el usuario de la página ejecute código JavaScript en el navegador web, y acceder a recursos de la página (p.ej., cookies). ¿Se almacena el código JavaScript inyectado por el atacante en el servidor? En caso de que no sea así, indica dónde se almacena.</li>
+<li>¿Cómo podría un atacante utilizar este tipo de características (inyección de código JavaScript) para robar las cookies a un usuario potencialmente autenticado en la página?</li>
+</ol>
+<h4 id="ejercicio-5" class="unnumbered">Ejercicio 5</h4>
+<p>Para analizar los efectos de un ataque XSS almacenado accederemos a la página “Add to your Blog” desde el menú de navegación de OWASP 2017 como se indica a continuación:</p>
+<p><img src="img/persistent-xss.png" /></p>
+<p>Procede a crear una nueva entrada del blog cuyo contenido sea código JavaScript. Para ello introduce la siguiente cadena <code>&lt;script&gt;document.write(document.cookie)&lt;/script&gt;</code> en el área de texto del formulario, y a continuación haz clic en el botón “Save Blog Entry”.</p>
+<p>Responde justificadamente a las siguientes preguntas:</p>
+<ol type="1">
+<li>¿Cuál es el contenido de la sección “View Blogs” de la página que se obtiene tras enviar el formulario HTML?</li>
+<li>Selecciona el texto que ha generado el código JavaScript inyectado y haz clic con el botón derecho del ratón. En el menú emergente selecciona “Inspeccionar elemento”. Indica cual es el contenido completo del elemento HTML que almacena en su cuerpo el código JavaScript inyectado.</li>
+<li>Haz clic en el enlace “View Blogs”, que se encuentra junto al icono de la lupa. En la página mostrada selecciona la opción “Show All” en el combo, para a continuación hacer clic en el botón “View Blog Entries”. Esto permite ver todas las entradas de blog creadas por todos los usuarios del sitio web, incluidos los creados de forma anónima. Indica el contenido completo de la tabla de entradas de blog.</li>
+<li>¿Está presente en ese listado la entrada de blog creada anteriormente que contiene código Javascript?</li>
+<li>¿Por qué crees que el tipo de ataque realizado en este ejercicio se denomina XSS almacenado y el del ejercicio anterior XSS reflejado?</li>
+</ol>
+<h4 id="ejercicio-6" class="unnumbered">Ejercicio 6</h4>
+<p>Borra las cookies del navegador web Firefox en <code>Preferencias -&gt; Privacidad &amp; Seguridad -&gt; Cookies y datos del sitio -&gt; Limpiar datos… -&gt; Limpiar</code></p>
+<p>En la página principal de Mutillidae procede ahora a hacer clic en el enlace “Login/Register” (barra superior) y autentícate en el sitio web con el usuario “simba”. Para ello puedes explotar <em>SQL injection</em> (como en el Ejercicio 1) o emplear la contraseña “robada” como parte del Ejercicio 2.</p>
+<p>Una vez se haya realizado la autenticación, accede a la página “View someone’s blog” usada en el ejercicio anterior, pero en este caso empleando directamente el enlace del menú de navegación lateral: <code>OWASP 2017 -&gt; A7 - Cross Site Scripting (XSS) -&gt; Persistent (Second Order) -&gt; View someone's blog</code>. Vuelve a obtener el listado completo de entradas de blog, seleccionando la opción “Show All” en el combo, y haciendo clic en el botón “View Blog Entries”.</p>
+<p>Responde justificadamente a las siguientes preguntas:</p>
+<ol type="1">
+<li>¿Coincide el contenido de las entradas de blog con el que guardaste en el punto 3 del ejercicio anterior? ¿Por qué?</li>
+<li>¿Qué crees que sucedería si nos autenticáramos como “admin” y fueramos a ver todas las entradas del blog? ¿Sería la salida siempre la misma que la observada en el punto 1?</li>
+</ol>
+<h2 id="explotación-de-la-base-de-datos-con-sqlmap"><span class="header-section-number">4.2</span> Explotación de la base de datos con <code>sqlmap</code></h2>
+<p>En esta parte de la práctica se hará uso combinado de las herramientas ZAP y <code>sqlmap</code> para obtener información confidencial de la base de datos explotando vulnerabilidades presentes en Mutillidae. Para ello, procederemos a configurar ZAP como proxy en el navegador web Firefox, lo cual requiere realizar los siguiente pasos:</p>
+<ol type="1">
+<li><p>Abrimos Owasp ZAP ejecutando el siguiente comando desde una ventana de terminal:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb15-1" title="1"><span class="ex">kernel@debian</span>:~$ zap <span class="kw">&amp;</span></a></code></pre></div>
+<p>Al ser la primera vez que lanzamos ZAP en la máquina virtual, será preciso aceptar la licencia correspondiente, haciendo clic en “Accept” en el siguiente cuadro de diálogo:</p>
+<figure>
+<img src="img/zap-license.png" alt="zap-license" data-align="center" style="width:70.0%" /><figcaption>zap-license</figcaption>
+</figure></li>
+<li><p>En el cuadro de diálogo que se muestra elegimos la opción marcada en la siguiente imagen, y hacemos clic en Iniciar:</p>
+<p><img src="img/zap-dialog.png" alt="zap-dialog" data-align="center" style="width:70.0%" /> </p></li>
+<li><p>Al hacer esto se mostrará la ventana principal de OWASP:</p></li>
+</ol>
+<p><img src="img/zap-main.png" /></p>
+<p>Por defecto, al arrancar ZAP se inicia un servidor proxy que escucha en el puerto 8080 de localhost. Esta configuración es adecuada para la realización de la práctica, pero puede alterarse (si fuera necesario) accediendo al menú <code>Herramientas -&gt; Opciones</code> y posteriormente modificando los datos presentes en el cuadro de diálogo que se muestra al seleccionar “Local Proxies” en el cuadro de diálogo de opciones:</p>
+<p><img src="img/zap-proxy.png" /></p>
+<ol start="4" type="1">
+<li>Minimizamos la ventana de OWASP, y procedemos a configurar ZAP como proxy en Firefox. Para ello es preciso acceder a las preferencias del navegador, y a continuación hacer clic en el botón <code>Configuración…</code> que se muestra en la sección <code>General -&gt; Configuración de Red</code> como se indica en las dos siguientes capturas:</li>
+</ol>
+<p><img src="img/firefox-proxy1.png" /></p>
+<p><img src="img/firefox-proxy2.png" /></p>
+<p>En el cuadro de diálogo que aparece establecemos la configuración que se muestra en la siguiente imagen, y a continuación hacemos clic en “Aceptar”:</p>
+<p><img src="img/firefox-proxy3.png" /></p>
+<p>Al hacer esto, ZAP capturará todas las peticiones realizadas por el navegador web, así como las respuestas recibidas al acceder a sitios web fuera de <code>localhost</code>. Para poder realizar el seguimiento de peticiones y respuestas a Mutillidae accederemos al sitio web usando la dirección IP de la máquina virtual asociada a la interfaz de red <code>ens33</code> (ejecutar <code>ip a</code> para obtener dicha dirección). Por ejemplo, si la dirección es 192.168.127.132, accederemos a la siguiente página en el navegador: <code>http//192.168.127.132/mutillidae/</code></p>
+<p><img src="img/mutillidae-main-ip.png" /></p>
+<p>Para poder explotar las vulnerabilidades de <em>SQL injection</em> con <code>sqlmap</code> accederemos a la página “View Someones Blog” accesible mediante las entradas de menú lateral <code>OWASP 2017 -&gt; A1 - Injection (SQL) -&gt; SQLMAP Practice -&gt; View Someones Blog</code> como se muestra en la figura:</p>
+<p><img src="img/sqlmap-view-someone-blog1.png" /></p>
+<p>A continuación realizaremos una petición POST seleccionando el usuario “admin” en el combo de la parte izquierda del formulario mostrado, y a continuación haciendo clic en “View Blog Entries”:</p>
+<p><img src="img/sqlmap-view-someone-blog2.png" /></p>
+<p>Como resultado de esta petición POST se devolverá la siguiente página:</p>
+<p><img src="img/sqlmap-view-someone-blog3.png" /></p>
+<p>Mientras hemos navegado por el sitio web vulnerable, ZAP ha estado registrando todas las peticiones y respuestas HTTP entre navegador y servidor web. Para visualizar el contenido de las peticiones accederemos ahora a la ventana de ZAP —que estaba minimizada— y realizaremos lo siguiente en dicha ventana:</p>
+<ul>
+<li><p>En la barra lateral de la parte izquierda seleccionar la entrada “Sitios” y desplegarla de modo que se muestre la dirección IP de la máquina virtual. En caso de que sí se muestre (como figura en la captura presente a continuación), entonces ZAP habrá registrado correctamente el tráfico durante nuestra navegación.</p></li>
+<li><p>En la parte Inferior seleccionar la pestaña “Historia”, y de las distintas peticiones que se han capturado hacer doble clic en la petición “POST” para seleccionarla, como se ilustra en la captura de pantalla. <strong>Nota:</strong> en vuestro caso pueden salir más peticiones que las de la figura, pero la petición POST que nos interesa se encuentra al final de la lista.</p>
+<p><img src="img/zap-post-request.png" /></p></li>
+<li><p>Finalmente, en la parte superior de la ventana se ha de seleccionar la pestaña “Petición”, y proceder a ajustar lo necesario el tamaño de las áreas de texto para que se muestre todo el contenido de la petición.</p></li>
+</ul>
+<p>Ahora nos centraremos en las dos áreas de texto que aparecen en la parte central de la ventana. Éstas muestran respectivamente las cabeceras de la petición HTTP (arriba) y el cuerpo o <em>payload</em> de la petición POST (abajo). De la información que se muestra debemos prestar especial atención a la URL, el valor de la cookie y al cuerpo de la petición POST, que se muestran resaltados en la siguiente imagen:</p>
+<p><img src="img/zap-post-request-zoom.png" /></p>
+<p>La cuestión es que la página <em>view-someones-blog-php</em>, a la que hace referencia la URL, es vulnerable a ataques de inyección SQL. Con la información capturada con el proxy web, procederemos a continuación a repetir esta petición POST (<em>replay attack</em>) para perpetrar ataques automatizados de <em>SQL injection</em> haciendo uso de la herramienta <code>sqlmap</code> desde la línea de comandos. En particular, para repetir la misma petición POST en sucesivas ocasiones emplearemos las tres siguientes opciones de <code>sqlmap</code>:</p>
+<ul>
+<li><code>-u &lt;URL&gt;</code>: permite especificar la URL de la página vulnerable</li>
+<li><code>--data=&lt;PAYLOAD&gt;</code>: permite especificar el contenido del formulario web que se envía mediante POST</li>
+<li><code>--cookie=&lt;COOKIE&gt;</code>: ofrece la posibilidad de hacer las peticiones web como un usuario (autenticado o no) que ya ha visitado la página en otra ocasión. En esta práctica, emplearemos SQLMap para explotar vulnerabilidades de <em>SQL injection</em> presentes en un formulario que no requiere autenticación. No obstante en aquellos casos en los que el formulario en cuestión requiera autenticación, también es posible perpetrar el ataque siguiendo los mismos pasos que se muestran aquí.</li>
+</ul>
+<p>En primer lugar haremos que <code>sqlmap</code> detecte si el formulario de la página es susceptible a ataques de inyección SQL, y en caso afirmativo se mostrarán las bases de datos presentes en el servidor usado por el sitio web. Para ello usaremos la opción <code>--dbs</code> en combinación con las opciones presentadas anteriormente. Nótese que cada estudiante ha de construir el comando completo adecuadamente en base al contenido de la petición POST capturada con ZAP.</p>
+<p>Por ejemplo, para los datos de la petición anterior el comando a ejecutar sería el siguiente:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb16-1" title="1">$ <span class="ex">sqlmap</span> -u <span class="st">&#39;http://192.168.127.132/mutillidae/index.php?page=view-someones-blog.php&#39;</span> \</a>
+<a class="sourceLine" id="cb16-2" title="2">       --data=<span class="st">&#39;author=admin&amp;view-someones-blog-php-submit-button=View+Blog+Entries&#39;</span> \</a>
+<a class="sourceLine" id="cb16-3" title="3">       --cookie=<span class="st">&#39;PHPSESSID=etk73sqgsejs3ob78h5g7j89a1&#39;</span> --dbs</a></code></pre></div>
+<p>Procedamos entonces a ejecutar dicho comando. SQLmap detecta los parámetros de formulario y asigna valores específicos a los mismos para realizar descubrimiento del gestor de bases de datos subyacente, que el atacante o <em>pentester</em> desconoce. A las dos primeras preguntas que nos hace responderemos que sí (<code>y</code>):</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb17-1" title="1"><span class="ex">kernel@debian</span>:~$ sqlmap -u <span class="st">&#39;http://192.168.127.132/mutillidae/index.php?page=view-someones-blog.php&#39;</span> \</a>
+<a class="sourceLine" id="cb17-2" title="2">              --data=<span class="st">&#39;author=admin&amp;view-someones-blog-php-submit-button=View+Blog+Entries&#39;</span> \</a>
+<a class="sourceLine" id="cb17-3" title="3">              --cookie=<span class="st">&#39;PHPSESSID=etk73sqgsejs3ob78h5g7j89a1&#39;</span> --dbs</a>
+<a class="sourceLine" id="cb17-4" title="4">        <span class="ex">___</span></a>
+<a class="sourceLine" id="cb17-5" title="5">       <span class="ex">__H__</span></a>
+<a class="sourceLine" id="cb17-6" title="6"> <span class="ex">___</span> ___[.]_____ ___ ___  <span class="dt">{1.3.2#stable}</span></a>
+<a class="sourceLine" id="cb17-7" title="7"><span class="kw">|</span><span class="ex">_</span> -<span class="kw">|</span> <span class="bu">.</span> [<span class="ex">.</span>]     <span class="kw">|</span> <span class="ex">.</span><span class="st">&#39;| . |</span></a>
+<a class="sourceLine" id="cb17-8" title="8"><span class="st">|___|_  [&#39;</span>]_<span class="kw">|</span><span class="ex">_</span><span class="kw">|</span><span class="ex">_</span><span class="kw">|</span><span class="ex">__</span>,<span class="kw">|</span>  <span class="ex">_</span><span class="kw">|</span></a>
+<a class="sourceLine" id="cb17-9" title="9">      <span class="kw">|</span><span class="ex">_</span><span class="kw">|</span><span class="ex">V</span>          <span class="kw">|</span><span class="ex">_</span><span class="kw">|</span>   <span class="ex">http</span>://sqlmap.org</a>
+<a class="sourceLine" id="cb17-10" title="10"></a>
+<a class="sourceLine" id="cb17-11" title="11">[!] <span class="ex">legal</span> disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user<span class="st">&#39;s responsibility to obey all applicabl</span></a>
+<a class="sourceLine" id="cb17-12" title="12"><span class="st">e local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program</span></a>
+<a class="sourceLine" id="cb17-13" title="13"></a>
+<a class="sourceLine" id="cb17-14" title="14"><span class="st">[*] starting at 12:06:58</span></a>
+<a class="sourceLine" id="cb17-15" title="15"></a>
+<a class="sourceLine" id="cb17-16" title="16"><span class="st">[12:06:58] [INFO] testing connection to the target URL</span></a>
+<a class="sourceLine" id="cb17-17" title="17"><span class="st">[12:06:58] [INFO] testing if the target URL is stable</span></a>
+<a class="sourceLine" id="cb17-18" title="18"><span class="st">[12:06:59] [INFO] target URL is stable</span></a>
+<a class="sourceLine" id="cb17-19" title="19"><span class="st">[12:06:59] [INFO] testing if POST parameter &#39;</span>author<span class="st">&#39; is dynamic</span></a>
+<a class="sourceLine" id="cb17-20" title="20"><span class="st">[12:06:59] [WARNING] POST parameter &#39;</span>author<span class="st">&#39; does not appear to be dynamic</span></a>
+<a class="sourceLine" id="cb17-21" title="21"><span class="st">[12:06:59] [INFO] heuristic (basic) test shows that POST parameter &#39;</span>author<span class="st">&#39; might be injectable (possible DBMS: &#39;</span>MySQL<span class="st">&#39;)</span></a>
+<a class="sourceLine" id="cb17-22" title="22"><span class="st">[12:06:59] [INFO] heuristic (XSS) test shows that POST parameter &#39;</span>author<span class="st">&#39; might be vulnerable to cross-site scripting attacks</span></a>
+<a class="sourceLine" id="cb17-23" title="23"><span class="st">[12:06:59] [INFO] testing for SQL injection on POST parameter &#39;</span>author<span class="st">&#39;</span></a>
+<a class="sourceLine" id="cb17-24" title="24"><span class="st">it looks like the back-end DBMS is &#39;</span>MySQL<span class="st">&#39;. Do you want to skip test payloads specific for other DBMSes? [Y/n] y</span></a>
+<a class="sourceLine" id="cb17-25" title="25"><span class="st">for the remaining tests, do you want to include all tests for &#39;</span>MySQL<span class="st">&#39; extending provided level (1) and risk (1) values? [Y/n] y</span></a>
+<a class="sourceLine" id="cb17-26" title="26"><span class="st">...</span></a></code></pre></div>
+<p>Tras realizar una serie de ataques de inyección específicos para el gestor seleccionado (MySQL), <code>sqlmap</code> detecta que el parámetro “user” es vulnerable, momento en el cual le indicaremos que no deseamos seguir explorando vulnerabilidades con otros parámetros.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb18-1" title="1"><span class="ex">...</span></a>
+<a class="sourceLine" id="cb18-2" title="2">[<span class="ex">12</span>:08:03] [INFO] testing <span class="st">&#39;MySQL &lt; 5.0.12 stacked queries (heavy query - comment)&#39;</span></a>
+<a class="sourceLine" id="cb18-3" title="3">[<span class="ex">12</span>:08:03] [INFO] testing <span class="st">&#39;MySQL &lt; 5.0.12 stacked queries (heavy query)&#39;</span></a>
+<a class="sourceLine" id="cb18-4" title="4">[<span class="ex">12</span>:08:03] [INFO] testing <span class="st">&#39;MySQL &gt;= 5.0.12 AND time-based blind&#39;</span></a>
+<a class="sourceLine" id="cb18-5" title="5">[<span class="ex">12</span>:08:13] [INFO] POST parameter <span class="st">&#39;author&#39;</span> appears to be <span class="st">&#39;MySQL &gt;= 5.0.12 AND time-based blind&#39;</span> injectable</a>
+<a class="sourceLine" id="cb18-6" title="6">[<span class="ex">12</span>:08:13] [INFO] testing <span class="st">&#39;Generic UNION query (NULL) - 1 to 20 columns&#39;</span></a>
+<a class="sourceLine" id="cb18-7" title="7">[<span class="ex">12</span>:08:13] [INFO] testing <span class="st">&#39;MySQL UNION query (NULL) - 1 to 20 columns&#39;</span></a>
+<a class="sourceLine" id="cb18-8" title="8">[<span class="ex">12</span>:08:13] [INFO] automatically extending ranges for UNION query injection technique tests as there is at least one other (potential) <span class="ex">technique</span> found</a>
+<a class="sourceLine" id="cb18-9" title="9">[<span class="ex">12</span>:08:15] [INFO] target URL appears to be UNION injectable with 4 columns</a>
+<a class="sourceLine" id="cb18-10" title="10">[<span class="ex">12</span>:08:15] [INFO] POST parameter <span class="st">&#39;author&#39;</span> is <span class="st">&#39;MySQL UNION query (NULL) - 1 to 20 columns&#39;</span> injectable</a>
+<a class="sourceLine" id="cb18-11" title="11"><span class="ex">POST</span> parameter <span class="st">&#39;author&#39;</span> is vulnerable. Do you want to keep testing the others (if any)<span class="ex">?</span> [y/N] n</a></code></pre></div>
+<p>Al continuación, <code>sqlmap</code> generará el siguiente informe, en el que se proporciona un listado de cadenas de inyección a las que el formulario web es vulnerable:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb19-1" title="1"><span class="ex">...</span></a>
+<a class="sourceLine" id="cb19-2" title="2"><span class="ex">POST</span> parameter <span class="st">&#39;author&#39;</span> is vulnerable. Do you want to keep testing the others (if any)<span class="ex">?</span> [y/N] n</a>
+<a class="sourceLine" id="cb19-3" title="3"><span class="ex">sqlmap</span> identified the following injection point(s) <span class="ex">with</span> a total of 82 HTTP(s) <span class="ex">requests</span>:</a>
+<a class="sourceLine" id="cb19-4" title="4"><span class="ex">---</span></a>
+<a class="sourceLine" id="cb19-5" title="5"><span class="ex">Parameter</span>: author (POST)</a>
+<a class="sourceLine" id="cb19-6" title="6">    <span class="ex">Type</span>: boolean-based blind</a>
+<a class="sourceLine" id="cb19-7" title="7">    <span class="ex">Title</span>: AND boolean-based blind - WHERE or HAVING clause (MySQL comment)</a>
+<a class="sourceLine" id="cb19-8" title="8">    <span class="ex">Payload</span>: author=admin<span class="st">&#39; AND 9166=9166#&amp;view-someones-blog-php-submit-button=View Blog Entries</span></a>
+<a class="sourceLine" id="cb19-9" title="9"></a>
+<a class="sourceLine" id="cb19-10" title="10"><span class="st">    Type: error-based</span></a>
+<a class="sourceLine" id="cb19-11" title="11"><span class="st">    Title: MySQL &gt;= 5.0 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (FLOOR)</span></a>
+<a class="sourceLine" id="cb19-12" title="12"><span class="st">    Payload: author=admin&#39;</span> AND (SELECT 2527 FROM(SELECT COUNT(*),<span class="ex">CONCAT</span>(0x7176767071,(SELECT (ELT(2527=2527,1))),<span class="ex">0x7171626a71</span>,FLOOR(RAND(0)<span class="ex">*2</span>))<span class="ex">x</span> FROM INFORMATION_SCHEMA.PLUGINS GROUP BY x)<span class="ex">a</span>)<span class="ex">--</span> VtTQ<span class="kw">&amp;</span><span class="ex">view-someones-blog-php-submit-button</span>=View Blog Entries</a>
+<a class="sourceLine" id="cb19-13" title="13"></a>
+<a class="sourceLine" id="cb19-14" title="14">    <span class="ex">Type</span>: AND/OR time-based blind</a>
+<a class="sourceLine" id="cb19-15" title="15">    <span class="ex">Title</span>: MySQL <span class="op">&gt;</span>= 5.0.12 AND time-based blind</a>
+<a class="sourceLine" id="cb19-16" title="16">    <span class="ex">Payload</span>: author=admin<span class="st">&#39; AND SLEEP(5)-- oWJj&amp;view-someones-blog-php-submit-button=View Blog Entries</span></a>
+<a class="sourceLine" id="cb19-17" title="17"></a>
+<a class="sourceLine" id="cb19-18" title="18"><span class="st">    Type: UNION query</span></a>
+<a class="sourceLine" id="cb19-19" title="19"><span class="st">    Title: MySQL UNION query (random number) - 4 columns</span></a>
+<a class="sourceLine" id="cb19-20" title="20"><span class="st">    Payload: author=admin&#39;</span> UNION ALL SELECT 5361,5361,CONCAT(0x7176767071,0x585862645a564d6171654179476e506d44526c59577559684356556847444f6e5a54557542546776,0x7171626a71),<span class="ex">5361</span>#<span class="kw">&amp;</span><span class="ex">view-someones-blog-php-submit-button</span>=View Blog Entries</a>
+<a class="sourceLine" id="cb19-21" title="21"><span class="ex">---</span></a>
+<a class="sourceLine" id="cb19-22" title="22"><span class="ex">...</span></a></code></pre></div>
+<p>Al final del informe, se proporciona información crítica del sistema, como el sistema operativo de la máquina atacada, el servidor web y de bases de datos usado, así como otra información sensible: un listado de las bases de datos presentes en el servidor MySQL:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb20-1" title="1"><span class="ex">---</span></a>
+<a class="sourceLine" id="cb20-2" title="2">[<span class="ex">21</span>:47:15] [INFO] the back-end DBMS is MySQL</a>
+<a class="sourceLine" id="cb20-3" title="3"><span class="ex">web</span> server operating system: Linux Debian</a>
+<a class="sourceLine" id="cb20-4" title="4"><span class="ex">web</span> application technology: Apache 2.4.38</a>
+<a class="sourceLine" id="cb20-5" title="5"><span class="ex">back-end</span> DBMS: MySQL <span class="op">&gt;</span>= 5.0</a>
+<a class="sourceLine" id="cb20-6" title="6">[<span class="ex">21</span>:47:15] [INFO] fetching database names</a>
+<a class="sourceLine" id="cb20-7" title="7"><span class="ex">available</span> databases [4]:</a>
+<a class="sourceLine" id="cb20-8" title="8">[<span class="ex">*</span>] information_schema</a>
+<a class="sourceLine" id="cb20-9" title="9">[<span class="ex">*</span>] mutillidae</a>
+<a class="sourceLine" id="cb20-10" title="10">[<span class="ex">*</span>] mysql</a>
+<a class="sourceLine" id="cb20-11" title="11">[<span class="ex">*</span>] performance_schema</a>
+<a class="sourceLine" id="cb20-12" title="12"></a>
+<a class="sourceLine" id="cb20-13" title="13">[<span class="ex">21</span>:47:15] [INFO] fetched data logged to text files under <span class="st">&#39;/home/kernel/.sqlmap/output/192.168.127.132&#39;</span></a>
+<a class="sourceLine" id="cb20-14" title="14"></a>
+<a class="sourceLine" id="cb20-15" title="15">[<span class="ex">*</span>] ending @ 21:47:15 /2022-01-15/</a>
+<a class="sourceLine" id="cb20-16" title="16"><span class="ex">kernel@debian</span>:~$</a></code></pre></div>
+<h4 id="ejercicio-7" class="unnumbered">Ejercicio 7</h4>
+<p>Llegados a este punto ya es posible extraer información de las bases de datos con <code>sqlmap</code>. En lugar de usar la opción <code>—dbs</code>, otras combinaciones de opciones muy potentes (a usar junto con <code>-u &lt;URL&gt; --data=&lt;PAYLOAD&gt; --cookie=&lt;COOKIE&gt;</code> ) son las siguientes:</p>
+<ul>
+<li><code>-D &lt;DATABASE_NAME&gt; --tables</code>: lista las tablas de la base de datos cuyo nombre se pase como parámetro de la opción <code>-D</code></li>
+<li><code>-D  &lt;DATABASE_NAME&gt; -T &lt;TABLE_NAME&gt; --dump</code>: Muestra el contenido completo de una tabla específica (argumento de <code>-T</code>) de la base de datos escogida (argumento de <code>-D</code>).</li>
+</ul>
+<p>Usando las combinaciones de opciones anteriormente descritas de <code>sqlmap</code>, contesta razonadamente a las siguientes preguntas, proporcionando además de la respuesta, el comando o comandos utilizados para obtener la información solicitada:</p>
+<ol type="1">
+<li>¿Cuántas bases de datos hay en la instancia del servidor MySQL que se ejecuta en el servidor?</li>
+<li>¿Cuál es el nombre de la base de datos que utiliza el sitio web vulnerable empleado en la práctica? ¿Qué tablas existen en esa base de datos?</li>
+<li>Una de las tablas de la base de datos almacena las cuentas de usuario del sitio web. ¿Cuántos usuarios distintos existen? Indica cuántos de estos usuarios tienen permisos de administrador en el sitio. ¿Es posible utilizar esta información (ya en poder del atacante) para acceder al sitio web con permisos de administración, y sin emplear <em>SQL injection</em> en más ocasiones? En caso afirmativo indica por qué esto es posible, y cómo podría realizarse dicho acceso.</li>
+<li>Otra tabla de la misma base de datos almacena información altamente sensible (aunque obviamente falsa, para el propósito de esta práctica). Identifica esta tabla, e indica cuál es su contenido. El modo en el que la información está almacenada en la tabla hace que la explotación de esta información por parte de un atacante pueda tener un impacto muy negativo en los “clientes” del sitio web vulnerable. Propón alguna medida para proteger esta información frente a ataques de inyección SQL de este tipo, en los que un atacante podría obtener los datos crudos almacenados en la base de datos.</li>
+</ol>
+<h2 id="auditoría-de-seguridad-del-sitio-web-con-owasp-zap"><span class="header-section-number">4.3</span> Auditoría de seguridad del sitio web con OWASP ZAP</h2>
+<p>Para concluir la práctica, realizaremos una exploración automatizada de las vulnerabilidades del sitio web Mutillidae realizando un escaneo con OWASP ZAP. Si bien en la sección anterior utilizamos esta herramienta meramente como proxy web para capturar el tráfico que fluye entre cliente y servidor, en este caso será ZAP el que actue como cliente web.</p>
+<p>ZAP soporta dos tipos de escaneo de vulnerabiilidades: <em>pasivo</em> y <em>activo</em>. En el <em>escaneo pasivo</em>, se realiza un análisis de las respuestas proporcionadas por el servidor web buscando en ellas vulnerabilidades potenciales. Una característica fundamental del escaneo pasivo es el hecho de que éste no altera los datos del sitio web. Esto impide la detección de numerosas vulnerabilidades de inyección como <em>SQL Injection</em>. El <em>escaneo activo</em> ataca el sitio web empleando técnicas conocidas para identificar vulnerabilidades. En este tipo de escaneo, sí pueden alterarse los datos del sitio web, e intentar la inyección de cadenas o scripts maliciosos.</p>
+<!--
+
+https://volosoft.com/Blog/Running-Penetration-Tests-for-your-Website-as-a-Simple-Developer
+
+-->
+<h4 id="ejercicio-8" class="unnumbered">Ejercicio 8</h4>
+<p>Como nuestro objetivo es detectar automáticamente el máximo número de vulnerabilidades posibles emplearemos el escaneo activo. Para ello, en la ventana principal de ZAP (ver figura a continuación) seleccionaremos “ATTACK Mode” en el combo de la esquina superior izquierda. Con ello queda seleccionado el escaneo de tipo activo[^Si se muestra un cuadro de diálogo indicando si escanear todos los nodos alcanzables (en <em>scope</em>), indicaremos que no.]. A continuación —como se muestra en la siguiente figura— en la ventana principal seleccionaremos la pestaña “Inicio Rápido” (parte superior de la ventana), introduciremos la URL del sitio a auditar (<code>http://localhost/mutillidae</code>) en el cuadro de texto con la etiqueta “URL a atacar” y haremos clic en el botón “Atacar”:</p>
+<p><img src="img/zap-attack.png" /></p>
+<p>Una vez el escaneo haya finalizado (tardará entre 10 y 20 minutos dependiendo de los recursos del equipo), ZAP cambiará la vista de la parte inferior de la pantalla activando la pestaña “Alertas” (en la figura anterior estaba activada la pestaña “Historia”). En la parte inferior izquierda de la ventana se mostrará un listado de alertas de seguridad detectadas. Para cada una de ellas, OWASP ZAP indica su nivel de riesgo —alto (color rojo), medio (color naranja) o bajo (color amarillo)—, y en la parte inferior derecha de la pantalla se proporciona información adicional, tras hacer clic en una vulnerabilidad específica de la lista en la parte izquierda.</p>
+<p>Contesta razonadamente las siguientes preguntas:</p>
+<ol type="1">
+<li>Indica qué tipo de alertas se generan así como el nivel de riesgo de cada una de ellas (alto, medio o bajo)</li>
+<li>En el listado de alertas de la parte inferior izquierda selecciona las alertas de tipo “Cross Site Scripting (Reflejada)”, y despliega la entrada de la lista. ¿Cuántas vulnerabilidades de ese tipo se han encontrado automáticamente? ¿Qué métodos HTTP se usan para explotar estas vulnerabilidades?</li>
+<li>En el listado de la parte inferior izquierda selecciona las alertas de tipo “Falla por Inyección SQL” y despliega la entrada de la lista. ¿Cuántas alertas de este tipo se generan? Vuelve a hacer clic en la entrada seleccionada de la lista, y se mostrará un cuadro de diálogo. Observa el contenido del área de texto “Solución”, ¿cuál es la primera contramedida que se propone en este caso?</li>
+<li>Finalmente, selecciona la alerta de tipo “Cookie No HTTPOnly Flag”, que es una de las vulnerabilidades que no han sido analizadas en clase. Haz clic de nuevo en esta alerta seleccionada, y en el cuadro de diálogo emergente, lee la descripción proporcionada. Indica (con tus palabras) en qué consiste este tipo de vulnerabilidad y en combinación con qué tipo de ataque —de los analizados en clase— podría explotarse este problema de seguridad.</li>
+</ol>
+</body>
+</html>
